@@ -1,0 +1,7 @@
+﻿  c.c
+c:\users\11859\source\repos\tcpproject\tcpproject\c.c(21): warning C4047: “函数”:“char *”与“char (*)[13]”的间接级别不同
+c:\users\11859\source\repos\tcpproject\tcpproject\c.c(21): warning C4024: “mysend”: 形参和实参 1 的类型不同
+c:\users\11859\source\repos\tcpproject\tcpproject\c.c(24): warning C4013: “system”未定义；假设外部返回 int
+c:\users\11859\source\repos\tcpproject\tcpproject\c.c(34): warning C4267: “函数”: 从“size_t”转换到“int”，可能丢失数据
+c:\users\11859\source\repos\tcpproject\tcpproject\c.c(54): warning C4098: “myconnect”:“void”函数返回值
+  tcpproject.vcxproj -> C:\Users\11859\source\repos\tcpproject\x64\Debug\tcpproject.exe
