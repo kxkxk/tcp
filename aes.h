@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <time.h>
 #include <sys/stat.h>
+#define min(a,b) ((a) < (b) ? (a) : (b))
 typedef uint8_t byte;
 const byte* file_title = "thepasswdisright"; 
 void swap(byte* a,byte* b) {
