@@ -8,6 +8,7 @@ int main(int argc, char* argv[]) {
 	fgets(key, 100, stdin);
 	char* r_key = passwd_cpy(key);
 	memcpy(key, r_key, 16 * sizeof(char));
+	free(r_key);
 	size_t enc_len;
 	byte* enc_data = encode_data(data, 16, key, &enc_len);
 	/*

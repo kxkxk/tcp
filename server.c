@@ -12,9 +12,16 @@ int mybind();
 int mylisten();
 int myaccept();
 byte* myrecv();
-
+byte* key[1024];
 
 int main(void) {
+
+	printf("input passwd len <= 16:");
+	fgets(key, 100, stdin);
+	char* r_key = passwd_cpy(key);
+	memcpy(key, r_key, 16 * sizeof(char));
+	free(r_key);
+
 	int recdata;
 	//设置接受字符串并清空内存
 	byte buf[1024];
@@ -30,7 +37,10 @@ int main(void) {
 		//接收请求
 		myaccept();
 		//接受信息
-		byte* mass = myrecv();
+		size_t recv_len,dec_len;
+		byte* mass = decode_data(myrecv(&recv_len),recv_len,key,&dec_len);
+		mass = realloc(mass,sizeof(byte) * (dec_len + 1));
+		mass[dec_len] = '\0';
 		printf("recvBuf  = [%s]\n", mass);
 		free(mass);
 		//关闭连接
@@ -92,12 +102,13 @@ int myaccept() {
 	}
 	printf("accept suc !\nServer get connect from %x port is %x", ntohl(r_addr.sin_addr.s_addr), ntohl(r_addr.sin_port));
 }
-byte* myrecv() {
+byte* myrecv(size_t* data_len) {
 	byte* recvBufp;
-	recvBufp = (char *)malloc(100);
-	if (-1 == recv(accsocfd, recvBufp, 100, 0)) {
+	recvBufp = (char *)malloc(256);
+	*data_len = recv(accsocfd, recvBufp, 256, 0);
+	if (-1 == *data_len) {
 		printf("recv failed!\n");
-		return;
+		return NULL;
 	}
 	printf("recv suc!\n");
 	return recvBufp;
