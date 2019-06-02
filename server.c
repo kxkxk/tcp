@@ -4,7 +4,7 @@
 #include <string.h>
 #include <linux/in.h>
 #include <sys/types.h>
-#include "../aes.h"
+#include "aes.h"
 #define PORT 8888
 int socketfd, accsocfd;
 int creatsocket();
@@ -16,7 +16,7 @@ byte* key[1024];
 
 input_passwd() {
 	printf("input passwd len <= 16:");
-	fgets(key, 100, stdin);
+	scanf("%s",key);//fgets(key, 100, stdin);
 	char* r_key = passwd_cpy(key);
 	memcpy(key, r_key, 16 * sizeof(char));
 	free(r_key);
@@ -42,7 +42,8 @@ int main(void) {
 		myaccept();
 		//接受信息
 		size_t recv_len,dec_len;
-		byte* mass = decode_data(myrecv(&recv_len),recv_len,key,&dec_len);
+		byte* rec =  myrecv(&recv_len);
+		byte* mass = decode_data(rec,recv_len,key,&dec_len);
 		if (mass == NULL) {
 			input_passwd();
 			free(mass);
