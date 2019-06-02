@@ -4,7 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 0
 #define PORT 8888
-const char* MIP = "66.98.123.124";
+char MIP[1000] = "66.98.123.124";
 #include <WINSOCK2.H>
 #include <ws2tcpip.h>
 #include <stdio.h>
