@@ -4,7 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 0
 #define PORT 8888
-const char* MIP = "";
+const char* MIP = "66.98.123.124";
 #include <WINSOCK2.H>
 #include <ws2tcpip.h>
 #include <stdio.h>
@@ -20,8 +20,8 @@ void mycleanup() {
 
 //TODO 向服务端发送信息
 // byte* sendData 发送信息
-void mysend(byte* sendData) {
-	if (send(sclient, sendData, strlen(sendData), 0) == SOCKET_ERROR) {
+void mysend(byte* sendData,size_t len) {
+	if (send(sclient, sendData, len, 0) == SOCKET_ERROR) {
 		printf("信息发送失败");
 	}
 	printf("信息发送成功!\n");

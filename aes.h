@@ -467,38 +467,49 @@ size_t get_file_size(FILE* fp) {
 //     return size;
 // }
 
-void encode_file(FILE* fp,FILE* sp,byte *key) {
-    size_t total = 0;
+byte* encode_data(byte* data,size_t len,byte *key,size_t* enc_len) {
+    size_t total = 16;
     // size_t file_size;
     // byte* enc_file = (byte*)malloc(sizeof(byte)*);
     byte part_16[16];
-
+	byte* encData = NULL;
     //write file_title
     memcpy(part_16,file_title,sizeof(byte) * 16);
-    byte* enc = aes_128_encode(part_16,key);
-    fwrite(enc,sizeof(byte),16,sp);
-    free(enc);
 
-    size_t cnt;
+    byte* enc = aes_128_encode(part_16,key);
+	encData = realloc(encData, total * sizeof(byte));
+	memcpy(encData, enc, sizeof(byte) * 16);
+	//fwrite(enc,sizeof(byte),16,sp);
+    free(enc);
+	byte* data_ptr = data;
     int fixed = 0;
     //printf("pos is:%d\n",ftell(fp));
-    while(cnt = fread(part_16,sizeof(byte),16,fp)) {
+    while(data_ptr < data + len) {
         //printf("pos is:%d\n",ftell(fp));
-        byte k = 16 - cnt;
-        while(cnt < 16) {
+		size_t part_cnt = min(16, data + len - data_ptr);
+		
+		memcpy(part_16, data_ptr, sizeof(byte) * part_cnt);
+		data_ptr += part_cnt;
+
+		byte contain_num = 16 - part_cnt;
+        while(part_cnt < 16) {
             fixed = 1;
-            part_16[cnt] = k;
-            ++cnt;
+            part_16[part_cnt] = contain_num;
+            ++part_cnt;
         }
-        total += cnt;
+
+        total += part_cnt;
         if(total % (1024*1024) == 0 && total != 0)
             printf("now is %d MiB\n",total / 1024 / 1024);
         //print_ti();
         enc = aes_128_encode(part_16,key);
         // printf("jiange ");
         // print_ti();
-        fwrite(enc,sizeof(byte),16,sp);
-        // byte* tail = enc_file + total - cnt;
+		encData = realloc(encData, total * sizeof(byte));
+		memcpy(encData + total - part_cnt, enc, sizeof(byte) * part_cnt);
+		//fwrite(enc,sizeof(byte),16,sp);
+        
+		// byte* tail = enc_file + total - cnt;
         // memcpy(tail,enc,sizeof(byte)*cnt);
         free(enc);
     }
@@ -508,62 +519,87 @@ void encode_file(FILE* fp,FILE* sp,byte *key) {
         for(int i = 0; i < 16; ++i) 
             part_16[i] = 16;
         byte* enc = aes_128_encode(part_16,key);
-        fwrite(enc,sizeof(byte),16,sp);
-        // enc_file = realloc(enc_file,sizeof(byte)*total);
+        //fwrite(enc,sizeof(byte),16,sp);
+		encData = realloc(encData, total * sizeof(byte));
+		memcpy(encData + total - 16, enc, sizeof(byte) * 16);
+		// enc_file = realloc(enc_file,sizeof(byte)*total);
         // byte* tail = enc_file + total - 16;
         // memcpy(tail,enc,sizeof(byte)*16);
         free(enc);
         //printf("pos is:%d\n",ftell(fp));
     }
+
+	*enc_len = total;
+	return encData;
     //return (_byte){enc_file,total};
 }
 
-int ft_right(byte* ft) {
+int passwd_right(byte* ft) {
     for(int i = 0; i < 16; ++i) 
         if(ft[i] != file_title[i]) return 0;
     return 1;
 }
 
-int decode_file(FILE* fp,FILE* sp,byte* key) {
-    size_t total = 0,cnt;
-    size_t sz = get_file_size(fp);
+byte* decode_data(byte* data,size_t len,byte* key,size_t* dec_len) {
+    size_t total = 0,part_cnt;
+	byte* decData = NULL,*data_ptr = data;
+	if (len < 16 || dec_len == NULL) return NULL;
     // byte* dec_file = NULL;
     byte part_16[16];
-    fread(part_16,sizeof(byte),16,fp);
+	memcpy(part_16, data_ptr, 16 * sizeof(byte));
+	data_ptr += 16;
+	//fread(part_16,sizeof(byte),16,fp);
     byte* dec = aes_128_decode(part_16,key);
-    if(!ft_right(dec)) return 0;
+    if(!passwd_right(dec)) return NULL;
     free(dec);
     //printf("pos is:%d\n",ftell(fp));
-    
-    while(cnt = fread(part_16,sizeof(byte),16,fp)) {
+    while(data_ptr < data + len) {
         //fseek(fp,cnt,SEEK_CUR);
         //printf("pos is:%d\n",ftell(fp));
         //print_ti();
+		part_cnt = min(16, data + len - data_ptr);
+		memcpy(part_16, data_ptr, sizeof(byte) * part_cnt);
+		data_ptr += part_cnt;
+
         dec = aes_128_decode(part_16,key);
         // printf("jiange ");
         // print_ti();
         // if(total == 1792)
         // printf("aaa");
-        total += 16;
+        
         
         if(total % (1024*1024) == 0 && total != 0)
             printf("now is %d MiB\n",total / 1024 / 1024);
         
-        if(total == sz) {
-            for(int i = dec[15]; i; --i) {
-                --cnt;
-            }
+        if(data_ptr == data + len) {
+			part_cnt -= dec[15];
         }
-        fwrite(dec,sizeof(byte),cnt,sp);
+
+		total += part_cnt;
+		decData = realloc(decData, total * sizeof(byte));
+		memcpy(decData + total - part_cnt, dec, part_cnt * sizeof(byte));
+        //fwrite(dec,sizeof(byte),cnt,sp);
         // dec_file = realloc(dec_file,sizeof(byte)*total);
         // byte* tail = dec_file + total - 16;
         // memcpy(tail,dec,sizeof(byte)*16);
         free(dec);
     }
-    return 1;
+	*dec_len = total;
+    return decData;
     // clearerr(fp);
     //  if(fread(part_16,sizeof(byte),16,fp)) printf("ok");
     //return (_byte){dec_file,total};
+}
+
+char* passwd_cpy(char* src) {
+	int str_len = strlen(src);
+	int len = min(str_len, 16);
+	char* passwd = malloc(sizeof(byte) * 16);
+	memcpy(passwd, src, sizeof(byte) * len);
+	for (int i = 0; len < 16; i = (i + 1) % str_len) {
+		passwd[len++] = src[i];
+	}
+	return passwd;
 }
 
 // int main() {
