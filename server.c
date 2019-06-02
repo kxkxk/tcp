@@ -41,7 +41,7 @@ int main(void) {
 		byte* mass = decode_data(myrecv(&recv_len),recv_len,key,&dec_len);
 		mass = realloc(mass,sizeof(byte) * (dec_len + 1));
 		mass[dec_len] = '\0';
-		printf("recvBuf  = [%s]\n", mass);
+		printf("recv_len = %d,dec_len = %d, recvBuf  = [%s]\n",recv_len,dec_len, mass);
 		free(mass);
 		//关闭连接
 		close(accsocfd);
