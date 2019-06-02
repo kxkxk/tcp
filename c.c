@@ -14,12 +14,16 @@ SOCKET sclient;
 #pragma comment(lib,"ws2_32.lib")
 
 int main(int argc, char*argv[]) {
-
-	char data[] = "Hello World!";
-	sclient = creatsocket();
-	myconnect();
-	mysend( &data);
 	
+	char data[] = "Hello World!";
+
+	//创建socket
+	sclient = creatsocket();
+	//连接到服务器
+	myconnect();
+	//发送消息
+	mysend( &data);
+	//清除socket
 	mycleanup();
 	system("pause");
 }
@@ -41,10 +45,15 @@ void mysend(char* sendData) {
 void myconnect() {
 	int err;
 	struct sockaddr_in clientService;
+	//设置连接模式为AF_INET,ip4
 	clientService.sin_family = AF_INET;
+	//设置连接ip地址，并转形
 	clientService.sin_addr.s_addr = inet_addr(MIP);
+	//设置连接端口
 	clientService.sin_port = htons(PORT);
+	//开始连接
 	err = connect(sclient, (SOCKADDR *)& clientService, sizeof(clientService));
+	//错误处理
 	if (err == SOCKET_ERROR) {
 		printf("连接失败%ld\n", WSAGetLastError());
 		err = closesocket(sclient);
@@ -79,7 +88,9 @@ SOCKET creatsocket() {
 	}
 	else
 		printf("Winsock 2.2 dll 准备完成\n");
-
+	//开始创建socket
+	//设置为流传输SOCK_ATREAM
+	//设置传输协议为TCP
 	SOCKET sclient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sclient == INVALID_SOCKET) {
 		printf("建立socket失败\n");
